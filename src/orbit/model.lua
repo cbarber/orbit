@@ -250,9 +250,10 @@ end
 local function build_query_by(dao, condition, args)
   local pairs = parse_condition(dao, condition, args)
   local order = ""
-  local field_list, table_list, select, limit
+  local field_list, table_list, select, limit, offset
   if args.distinct then select = "select distinct " else select = "select " end
   if tonumber(args.count) then limit = " limit " .. tonumber(args.count) else limit = "" end
+  if tonumber(args.offset) then offset = " offset " .. tonumber(args.offset) else offset = "" end
   if args.order then order = " order by " .. args.order end
   if args.inject then
     field_list, table_list, pairs[#pairs + 1] = build_inject(args.fields, args.inject,
@@ -266,7 +267,7 @@ local function build_query_by(dao, condition, args)
     table_list = dao.table_name
   end
   local sql = select .. field_list .. " from " .. table_list ..
-    " where " .. table.concat(pairs, " and ") .. order .. limit
+    " where " .. table.concat(pairs, " and ") .. order .. limit .. offset
   if dao.model.logging then log_query(sql) end
   return sql
 end
@@ -394,9 +395,10 @@ local function build_query(dao, condition, args)
   end
   local order = ""
   if args.order then order = " order by " .. args.order end
-  local field_list, table_list, select, limit
+  local field_list, table_list, select, limit, offset
   if args.distinct then select = "select distinct " else select = "select " end
   if tonumber(args.count) then limit = " limit " .. tonumber(args.count) else limit = "" end
+  if tonumber(args.offset) then offset = " offset " .. tonumber(args.offset) else offset = "" end
   if args.inject then
     local inject_condition
     field_list, table_list, inject_condition = build_inject(args.fields, args.inject,
@@ -415,7 +417,7 @@ local function build_query(dao, condition, args)
     table_list = table.concat({ dao.table_name, unpack(args.from or {}) }, ", ")
   end
   local sql = select .. field_list .. " from " .. table_list ..
-    condition .. order .. limit
+    condition .. order .. limit .. offset
   if dao.model.logging then log_query(sql) end
   return sql
 end
